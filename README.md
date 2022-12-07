@@ -8,7 +8,10 @@ The `FreeDWrapper` object can be used to create and set up a `0xD1` Position Pol
 ```python
 #                             pitch, yaw, roll, posz, posy, posx, zoom, focus
 newcameraposition = FreeDWrapper(0  ,  0,   0, 25000, 1000, -5000, 128, 300)
-bytes = newcameraposition.createFreeD().encode() #adds message metadata + checksum and serialises to byte string.
+message = newcameraposition.createFreeD() #adds message metadata + checksum.
+message.cameraid = b'\0x01' #Select a camera to send command to - by default this is 0xFF (all cameras).
+
+bytes = message.encode()
 
 # Do things with the bytes..
 senddata(bytes)
