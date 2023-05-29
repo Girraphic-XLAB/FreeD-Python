@@ -47,7 +47,7 @@ class _FreeD:
 
         serial = self.identifier + self.cameraID + self.pitch + self.yaw + \
             self.roll + self.pos_z + self.pos_y + self.pos_x + self.zoom + \
-            self.focus + self.reserved + FreeD.checksum(*data)
+            self.focus + self.reserved + _FreeD.checksum(*data)
         assert (len(serial) == 29)  # somethings gone wrong if not
         return serial
 
