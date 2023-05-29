@@ -2,7 +2,7 @@ from decimal import Overflow
 from typing import Literal, SupportsIndex
 
 #stores raw bytes for encoding. Use the FreeDWrapper as an interface for regular ints
-class FreeD:
+class _FreeD:
     identifier: 'bytes'
     cameraID: 'bytes'
     pitch: 'bytes'
@@ -16,9 +16,6 @@ class FreeD:
     reserved: 'bytes'
 
     def __init__(self, pitch: 'int', yaw: 'int', roll: 'int', pos_z: 'int',  pos_y: 'int', pos_x: 'int', zoom: 'int', focus: 'int') -> None:
-        # if (any([x > 0xFFFFFF or x < 0x00 for x in [pitch, yaw, roll, pos_z, pos_y, pos_x, zoom, focus]])):
-        #     raise ValueError("Maximum of 3 bytes allowed in location fields")
-
         self.identifier = b'\xD1'
         self.cameraID = b'\xFF'
         self.reserved = b'\x00\x00'
@@ -93,6 +90,7 @@ class ThreeBytesSigned(ThreeBytes):
 
 # native types for FreeD raw bytes
 class FreeDWrapper:
+    cameraid: int
     pitch: 'ThreeBytesSigned'
     yaw: 'ThreeBytesSigned'
     roll: 'ThreeBytesSigned'
@@ -102,10 +100,11 @@ class FreeDWrapper:
     zoom: 'ThreeBytes'
     focus: 'ThreeBytes'
 
-    def __init__(self, pitch: 'int', yaw: 'int', roll: 'int', pos_z: 'int',  pos_y: 'int', pos_x: 'int', zoom: 'int', focus: 'int') -> None:
-        # if (any([x > 0xFFFFFF or x < 0x00 for x in [pitch, yaw, roll, pos_z, pos_y, pos_x, zoom, focus]])):
-        #     raise ValueError("Maximum of 3 bytes allowed in location fields")
-
+    def __init__(self, cameraid: int, pitch: 'int', yaw: 'int', roll: 'int', pos_z: 'int',  pos_y: 'int', pos_x: 'int', zoom: 'int', focus: 'int') -> None:
+        if cameraid > 255 or cameraid < 0:
+            raise ValueError("CameraID must be between 0 and 255")
+        
+        self.cameraid = cameraid
         self.pitch = ThreeBytesSigned(pitch)
         self.yaw = ThreeBytesSigned(yaw)
         self.roll = ThreeBytesSigned(roll)
@@ -116,5 +115,12 @@ class FreeDWrapper:
         self.focus = ThreeBytes(focus)
 
     #returns a struct with byte representations of fields, ready to encode into an array.
-    def createFreeD(self) -> 'FreeD':
-        return FreeD(self.pitch, self.yaw, self.roll, self.pos_z, self.pos_y, self.pos_x, self.zoom, self.focus)
+    def createFreeD(self) -> '_FreeD':
+        struct = _FreeD(self.pitch, self.yaw, self.roll, self.pos_z, self.pos_y, self.pos_x, self.zoom, self.focus)
+        struct.cameraID = self.cameraid.to_bytes(1, 'big', signed=False) 
+
+        return struct
+    
+    def encode(self) -> 'bytes':
+        message = self.createFreeD()
+        return message.encode()
