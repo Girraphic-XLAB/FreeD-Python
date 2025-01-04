@@ -4,8 +4,8 @@ A lightweight Python implementation of the FreeD protocol.
 `freed.py` contains some objects to help interface with FreeD structures. In particular are the `ThreeBytes` and `ThreeBytesSigned` types which define a fixed width integer type of 24 bits that is used in many of the FreeD protocols message payloads. This helps prevent errors like integer overflows.  
 
 Units are as follows:
-Position is millimetres * 1/64
-Angle is degrees * 1/32768
+Position is millimetres * 64
+Angle is degrees * 32768
 
 
 The `FreeDWrapper` object can be used to create and set up a `0xD1` Position Poll command to send to a FreeD unit/camera (such as with Unreal Engine's LiveLink plugin). This will take regular python ints and bounds check them. Use the `createFreeD()` method to create an object with raw byte fields, and then use the `encode()` method on that object to serialise it to a byte array that can be sent over the protocol of your choice (such as UDP). 
